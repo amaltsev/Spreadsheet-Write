@@ -1,56 +1,3 @@
-=head1 NAME
-
-Spreadsheet::Write - Simplified writer for CSV or XLS files
-
-=head1 SYNOPSIS
-
-    # EXCEL spreadsheet
-
-    use Spreadsheet::Write;
-
-    my $h=Spreadsheet::Write->new(
-        file    => 'spreadsheet.xls',
-        format  => 'xls',
-        sheet   => 'Products',
-    );
-
-    die $h->error() if $h->error;
-
-    $h->addrow('foo',{
-        contet          => 'bar',
-        font_weight     => 'bold',
-        font_color      => 42,
-        font_face       => 'Times New Roman',
-        font_size       => 20,
-        align           => 'center',
-        valign          => 'vcenter',
-        font_decoration => 'strikeout',
-        font_style      => 'italic',
-    });
-    $h->addrow('foo2','bar2');
-    $h->freeze(1,0);
-
-
-    # CSV file
-
-    use Spreadsheet::Write;
-
-    my $h=Spreadsheet::Write->new(
-        file        => 'file.csv',
-        encoding    => 'iso8859',
-    );
-    die $h->error() if $h->error;
-    $h->addrow('foo','bar');
-
-=head1 DESCRIPTION
-
-C<Spreadsheet::Write> writes files in csv or xls formats.
-
-=head1 METHODS
-
-=cut
-
-###############################################################################
 package Spreadsheet::Write;
 
 require 5.002;
@@ -69,25 +16,6 @@ BEGIN {
 sub version {
   return $VERSION;
 }
-
-###############################################################################
-
-=head2 new()
-
-    $spreadsheet = Spreadsheet::Write->new();
-
-Creates a new spreadsheet object. It takes a list of options. The
-following are valid:
-
-    file        filename of new spreadsheet (mandatory)
-    encoding    encoding of output file (optional, csv format only)
-    format      format of spreadsheet - 'csv', 'xls', or 'auto' (default).
-    sheet       Sheet name (optional, xls format only)
-
-If file format is 'auto' (or omitted), the format is guessed from the
-filename extention. If impossible to guess the format defaults to 'csv'.
-
-=cut
 
 sub new(@) {
     my $proto = shift;
@@ -113,25 +41,21 @@ sub new(@) {
     $format='csv' if(!$format);
     if(($format ne 'csv') && ($format ne 'xls')) {
         $self->{'_ERROR'}="Format $format is not supported";
-        return undef;
+        return $self;
     }
     $self->{'_FORMAT'}=$format;
     $self->{'_ERROR'}='';
 
-    ### $self->_open();
-
+    $self->_open();
+    
     return $self;
 }
-
-###############################################################################
 
 sub error {
     my $self=shift;
     return $self->{'_ERROR'};
-
+    
 }
-
-###############################################################################
 
 sub _open($) {
     my $self=shift;
@@ -166,46 +90,15 @@ sub _open($) {
     return $self;
 }
 
-###############################################################################
-
-=head2 addrow(arg1,arg2,...)
-
-Adds a row into the opened spreadsheet. Takes arbitrary number of
-arguments. Arguments represent column values and may be strings or
-hash references. If an argument is a hash reference, additional optional
-parameters may be passed:
-
-    content         string to put into column
-    font_weight     weight of font. Only valid value is 'bold'
-    font_style      style of font. Only valid value is 'italic'
-    font_decoration 'underline' or 'strikeout'
-    font_face       font of column; default is 'Arial'
-    font_color      color of font. See Spreadsheet::WriteExcel for color values description
-    font_size       size of font
-    align           alignment
-    valign          vertical alignment
-
-For CSV format extra arguments are safely ignored.
-
-Example:
-
-    $sp->addrow({ content => 'First Name', font_weight => 'bold' },
-                { content => 'Last Name', font_weight => 'bold' },
-                { content => 'Age', font_weight => 'bold' });
-    $sp->addrow("John","Doe",34);
-    $sp->addrow("Susan","Smith",28);
-
-=cut
-
 sub addrow (@) {
     my $self=shift;
     my $parts=\@_;
-
+    
     my @texts;
     my @props;
 
     $self->_open() || return undef;
-
+    
     foreach my $part (@$parts) {
         if(ref($part) && (ref($part) eq 'HASH')) {
             push(@texts,$part->{'content'} || '');
@@ -293,32 +186,101 @@ sub addrow (@) {
     return $self;
 }
 
-###############################################################################
-
-=head2 freeze($row, $col, $top_row, $left_col))
-
-Sets a freeze-pane at the given position, equivalent to Spreadsheet::WriteExcel->freeze_panes().
-Ignored for CSV files.
-
-=cut
-
 sub freeze (@) {
     my $self=shift;
-
+    
     $self->_open() || return undef;
-
-    if($self->{'_FORMAT'} eq 'xls') {
-        $self->{'_WORKSHEET'}->freeze_panes(@_);
-    }
+    $self->{'_WORKSHEET'}->freeze_panes(@_);
 
     return $self;
 }
 
-###############################################################################
-
 1;
 __END__
 
-=head1 AUTHORS
+=head1 NAME
 
-Nick Eremeev <nick.eremeev@gmail.com>
+Spreadsheet::Write - Simplyfied write rows into CSV or XLS file
+
+=head1 SYNOPSIS
+
+    # EXCEL spreadsheet
+    
+    use Spreadsheet::Write;
+
+    my $h=Spreadsheet::Write->new(
+        file    => 'spreadsheet',
+        format  => 'xls',
+        sheet   => 'Products',
+    );
+
+    die $h->error() if $h->error;
+    
+    $h->addrow('foo',{
+        contet          => 'bar',
+        font_weight     => 'bold',
+        font_color      => 42,
+        font_face       => 'Times New Roman',
+        font_size       => 20,
+        align           => 'center',
+        valign          => 'vcenter',
+        font_decoration => 'strikeout',
+        font_style      => 'italic',
+    });
+    $h->addrow('foo2','bar2');
+    $h->freeze(1,0);
+
+
+    # CSV file
+
+    use Spreadsheet::Write;
+
+    my $h=Spreadsheet::Write->new(
+        file        => 'file.csv',
+        encoding    => 'iso8859',
+    );
+    die $h->error() if $h->error;
+    $h->addrow('foo','bar');
+    
+    
+    
+=head1 DESCRIPTION
+
+C<Spreadsheet::Write> writes files in csv or xls formats.
+
+=head1 METHODS
+
+=head2 new()
+
+    $spreadsheet = Spreadsheet::Write->new();
+
+Creates a new spreadsheet object. It takes a list of options. The
+following are valid:
+
+    file        filename of new spreadsheet (mandatory)
+    encoding    encoding of output file (optional, csv format only)
+    format      format of spreadsheet ('csv' or 'xls'). If omitted, format
+                is guessed from filename extention or csv (default)
+    sheet       Sheet name (optional, xls format only)
+    
+=head2 addrow(arg1,arg2,...)
+
+Adds a row into opened spreadsheet. Takes arbitrary number of arguments. Arguments is a
+column values and may be strings or hash references.
+If argument is a hash reference, additional optional parameters may be passed:
+
+    content         string to put into column
+    font_weight     weight of font. Only valid value is 'bold'
+    font_style      style of font. Only valid value is 'italic'
+    font_decoration 'underline' or 'strikeout'
+    font_face       font of column; default is 'Arial'
+    font_color      color of font. See Spreadsheet::WriteExcel for color values description
+    font_size       size of font
+    align           alignment
+    valign          vertical alignment
+    
+=head2 freeze($row, $col, $top_row, $left_col))
+
+    equal to Spreadsheet::WriteExcel->freeze_panes()
+    
+=cut
