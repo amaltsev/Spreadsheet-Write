@@ -250,7 +250,7 @@ sub addrow (@) {
 
     foreach my $part (@$parts) {
         if(ref($part) && (ref($part) eq 'HASH')) {
-            push(@texts,$part->{'content'} || '');
+            push(@texts,$part->{'content'});
             push(@props,$part);
         }
         else {
