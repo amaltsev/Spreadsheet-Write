@@ -12,12 +12,17 @@ Spreadsheet::Write - Simplified writer for CSV or XLS files
         file    => 'spreadsheet.xls',
         format  => 'xls',
         sheet   => 'Products',
+        styles  => {
+            money   => '($#,##0_);($#,##0)',
+        },
     );
 
     die $h->error() if $h->error;
 
     $h->addrow('foo',{
-        contet          => 'bar',
+        content         => 'bar',
+        type            => 'number',
+        style           => 'money',
         font_weight     => 'bold',
         font_color      => 42,
         font_face       => 'Times New Roman',
@@ -29,7 +34,6 @@ Spreadsheet::Write - Simplified writer for CSV or XLS files
     });
     $h->addrow('foo2','bar2');
     $h->freeze(1,0);
-
 
     # CSV file
 
@@ -53,7 +57,7 @@ C<Spreadsheet::Write> writes files in csv or xls formats.
 ###############################################################################
 package Spreadsheet::Write;
 
-require 5.002;
+require 5.008_001;
 
 use strict;
 use IO::File;
@@ -74,7 +78,12 @@ sub version {
 
 =head2 new()
 
-    $spreadsheet = Spreadsheet::Write->new();
+    $spreadsheet = Spreadsheet::Write->new(
+        file            => 'table.xls',
+        styles          => {
+            mynumber        => '#,##0.00',
+        }
+    );
 
 Creates a new spreadsheet object. It takes a list of options. The
 following are valid:
@@ -83,6 +92,7 @@ following are valid:
     encoding    encoding of output file (optional, csv format only)
     format      format of spreadsheet - 'csv', 'xls', or 'auto' (default).
     sheet       Sheet name (optional, xls format only)
+    styles      Defines cell formatting shortcuts (optional)
 
 If file format is 'auto' (or omitted), the format is guessed from the
 filename extention. If impossible to guess the format defaults to 'csv'.
@@ -114,6 +124,8 @@ sub new(@) {
     }
 
     $self->{'_FORMAT'}=$format;
+
+    $self->{'_STYLES'}=$args->{'styles'} || { };
 
     ### $self->_open();
 
@@ -177,30 +189,53 @@ sub _open($) {
 
 =head2 addrow(arg1,arg2,...)
 
-Adds a row into the opened spreadsheet. Takes arbitrary number of
-arguments. Arguments represent column values and may be strings or
-hash references. If an argument is a hash reference, additional optional
+Adds a row into the spreadsheet. Takes arbitrary number of
+arguments. Arguments represent column values and may be strings or hash
+references. If an argument is a hash reference, additional optional
 parameters may be passed:
 
-    content         string to put into column
+    content         value to put into column
+    style           formatting style, as defined in new()
+    type            type of the content (defaults to 'auto')
+    format          number format (see Spreadsheet::WriteExcel for details)
     font_weight     weight of font. Only valid value is 'bold'
     font_style      style of font. Only valid value is 'italic'
     font_decoration 'underline' or 'strikeout'
     font_face       font of column; default is 'Arial'
-    font_color      color of font. See Spreadsheet::WriteExcel for color values description
+    font_color      color of font (see Spreadsheet::WriteExcel for color values)
     font_size       size of font
     align           alignment
     valign          vertical alignment
 
-For CSV format extra arguments are safely ignored.
+Styles can be used to assign default values for any of these formatting
+parameters thus allowing easy global changes. Other parameters specified
+override style definitions.
 
 Example:
 
-    $sp->addrow({ content => 'First Name', font_weight => 'bold' },
-                { content => 'Last Name', font_weight => 'bold' },
-                { content => 'Age', font_weight => 'bold' });
+    my $sp=Spreadsheet::Write->new(
+        file        => 'employees.xls',
+        styles      => {
+            header => { font_weight => 'bold' },
+        },
+    );
+    $sp->addrow(
+        { content => 'First Name', font_weight => 'bold' },
+        { content => 'Last Name', font_weight => 'bold' },
+        { content => 'Age', style => 'header' },
+    );
     $sp->addrow("John","Doe",34);
     $sp->addrow("Susan","Smith",28);
+
+Note that in this example all header cells will have identical
+formatting even though some use direct formats and one uses
+style.
+
+If you want to store text that looks like a number you might want to use
+{ type => 'string', format => '@' } arguments. By default the type detection is automatic,
+as done by for instance L<Spreadsheet::WriteExcel> write() method.
+
+For CSV format all extra arguments are safely ignored.
 
 =cut
 
@@ -248,10 +283,24 @@ sub addrow (@) {
         my $col=0;
         my $nparts=scalar(@texts);
         for(my $i=0; $i<$nparts; $i++) {
-            my $string=$texts[$i];
+            my $value=$texts[$i];
             my $props=$props[$i];
+
             my %format;
             if($props) {
+                if(my $style=$props->{'style'}) {
+                    my $stprops=$self->{'_STYLES'}->{$style};
+                    if(!$stprops) {
+                        warn "Style '$style' is not defined\n";
+                    }
+                    else {
+                        my %a;
+                        @a{keys %$stprops}=values %$stprops;
+                        @a{keys %$props}=values %$props;
+                        $props=\%a;
+                    }
+                }
+
                 if($props->{'font_weight'}) {
                     if($props->{'font_weight'} eq 'bold') {
                         $format{'bold'}=1;
@@ -286,12 +335,25 @@ sub addrow (@) {
                 if($props->{'valign'}) {
                     $format{'valign'}=$props->{'valign'};
                 }
+                if($props->{'format'}) {
+                    $format{'num_format'}=$props->{'format'};
+                }
             }
-            if(keys %format > 0) {
-                $worksheet->write($row, $col++, $string, $workbook->add_format(%format));
-            }
-            else {
-                $worksheet->write($row, $col++, $string);
+
+            my @params=($row,$col++,$value);
+            push(@params,$workbook->add_format(%format)) if keys %format;
+
+            my $type=($props ? $props->{'type'} : '') || 'auto';
+            if($type eq 'auto')         { $worksheet->write(@params); }
+            elsif($type eq 'string')    { $worksheet->write_string(@params); }
+            elsif($type eq 'text')      { $worksheet->write_string(@params); }
+            elsif($type eq 'number')    { $worksheet->write_number(@params); }
+            elsif($type eq 'blank')     { $worksheet->write_blank(@params); }
+            elsif($type eq 'formula')   { $worksheet->write_formula(@params); }
+            elsif($type eq 'url')       { $worksheet->write_url(@params); }
+            else{
+                warn "Unknown cell type $type";
+                $worksheet->write(@params);
             }
         }
         $self->{'_WORKBOOK_ROW'}++;
