@@ -136,6 +136,15 @@ sub new(@) {
 
 sub DESTROY {
     my $self=shift;
+    $self->close();
+}
+
+###############################################################################
+
+sub close {
+    my $self=shift;
+
+    return if $self->{'_CLOSED'};
 
     if($self->{'_FORMAT'} eq 'csv') {
         $self->{'_FH'}->close if $self->{'_FH'};
@@ -144,6 +153,8 @@ sub DESTROY {
         $self->{'_WORKBOOK'}->close if $self->{'_WORKBOOK'};
         $self->{'_FH'}->close if $self->{'_FH'};
     }
+
+    $self->{'_CLOSED'}=1;
 }
 
 ###############################################################################
@@ -157,6 +168,8 @@ sub error {
 
 sub _open($) {
     my $self=shift;
+
+    $self->{'_CLOSED'} && die "Can't reuse a closed spreadsheet";
 
     my $fh=$self->{'_FH'};
 
