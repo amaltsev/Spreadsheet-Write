@@ -376,6 +376,35 @@ sub addrow (@) {
 
 ###############################################################################
 
+=head2 addsheet(name)
+
+Adds a new sheet into the document and makes it active. Subsequent
+addrow() calls will add rows to that new sheet.
+
+For CSV format this call is NOT ignored, but produces a fatal error
+currently.
+
+=cut
+
+sub addsheet ($$) {
+    my ($self,$name)=@_;
+
+    $self->_open() || return undef;
+
+    if($self->{'_FORMAT'} eq 'xls') {
+        my $workbook=$self->{'_WORKBOOK'};
+        my $worksheet=$workbook->add_worksheet($name);
+        $self->{'_SHEETNAME'}=$name;
+        $self->{'_WORKSHEET'}=$worksheet;
+        $self->{'_WORKBOOK_ROW'}=0;
+    }
+    elsif($self->{'_FORMAT'} eq 'csv') {
+        die "addsheet() is not supported for CSV format";
+    }
+}
+
+###############################################################################
+
 =head2 freeze($row, $col, $top_row, $left_col))
 
 Sets a freeze-pane at the given position, equivalent to Spreadsheet::WriteExcel->freeze_panes().
