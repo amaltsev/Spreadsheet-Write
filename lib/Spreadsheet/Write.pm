@@ -1,6 +1,6 @@
 =head1 NAME
 
-Spreadsheet::Write - Simplified writer for CSV or XLS files
+Spreadsheet::Write - Simplified writer for CSV or XLS (MS Excel) files
 
 =head1 SYNOPSIS
 
@@ -16,8 +16,6 @@ Spreadsheet::Write - Simplified writer for CSV or XLS files
             money   => '($#,##0_);($#,##0)',
         },
     );
-
-    die $h->error() if $h->error;
 
     $h->addrow('foo',{
         content         => 'bar',
@@ -48,7 +46,9 @@ Spreadsheet::Write - Simplified writer for CSV or XLS files
 
 =head1 DESCRIPTION
 
-C<Spreadsheet::Write> writes files in csv or xls formats.
+C<Spreadsheet::Write> writes files in CSV or XLS (Microsoft Excel)
+formats. It is especially suitable for building various dumps and
+reports where rows are built in sequence, one after another.
 
 =head1 METHODS
 
@@ -67,7 +67,7 @@ use Spreadsheet::WriteExcel;
 
 BEGIN {
   use vars       qw($VERSION);
-  $VERSION =     '0.01';
+  $VERSION =     '0.02';
 }
 
 sub version {
@@ -219,6 +219,7 @@ parameters may be passed:
     font_size       size of font
     align           alignment
     valign          vertical alignment
+    width           column width, excel units (only makes sense once per column)
 
 Styles can be used to assign default values for any of these formatting
 parameters thus allowing easy global changes. Other parameters specified
@@ -350,6 +351,9 @@ sub addrow (@) {
                 }
                 if($props->{'format'}) {
                     $format{'num_format'}=$props->{'format'};
+                }
+                if($props->{'width'}) {
+                    $worksheet->set_column($col,$col,$props->{'width'});
                 }
             }
 
