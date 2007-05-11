@@ -264,8 +264,17 @@ sub addrow (@) {
 
     foreach my $part (@$parts) {
         if(ref($part) && (ref($part) eq 'HASH')) {
-            push(@texts,$part->{'content'});
-            push(@props,$part);
+            my $content=$part->{'content'};
+            if(ref($content) && (ref($content) eq 'ARRAY')) {
+                foreach my $elt (@$content) {
+                    push(@texts,$elt);
+                    push(@props,$part);
+                }
+            }
+            else {
+                push(@texts,$part->{'content'});
+                push(@props,$part);
+            }
         }
         else {
             push(@texts,$part);
