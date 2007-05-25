@@ -200,6 +200,22 @@ sub _open($) {
 
 ###############################################################################
 
+sub _format_cache($$) {
+    my $self=shift;
+    my $format=shift;
+    
+    my $cache_key='';
+    foreach my $key (sort keys %$format) {
+        $cache_key.=$key.$format->{$key};
+    }
+    if(exists($self->{'_FORMAT_CACHE'}->{$cache_key})) {
+        return $self->{'_FORMAT_CACHE'}->{$cache_key};
+    }
+    return $self->{'_FORMAT_CACHE'}->{$cache_key}=$self->{'_WORKBOOK'}->add_format(%$format);
+}
+
+###############################################################################
+
 =head2 addrow(arg1,arg2,...)
 
 Adds a row into the spreadsheet. Takes arbitrary number of
@@ -367,7 +383,9 @@ sub addrow (@) {
             }
 
             my @params=($row,$col++,$value);
-            push(@params,$workbook->add_format(%format)) if keys %format;
+
+#            push(@params,$workbook->add_format(%format)) if keys %format;
+            push(@params,$self->_format_cache(\%format)) if keys %format;
 
             my $type=($props ? $props->{'type'} : '') || 'auto';
             if($type eq 'auto')         { $worksheet->write(@params); }
