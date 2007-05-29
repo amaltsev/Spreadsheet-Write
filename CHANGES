@@ -1,3 +1,12 @@
+0.04 - 28-May-2007
+    * Accepting IO::Handle as 'file' argument to allow for instance
+      building spreadsheets in memory (using IO::Scalar).
+
+0.03 - 25-May-2007
+    * Formats are cached to improve performance in Excel
+    * 'content' in extended cell info blocks can be an array to simplify
+      headers creation and such.
+
 0.02 - 7-May-2007
     * 'width' added to set column widths
 

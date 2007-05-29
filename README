@@ -59,7 +59,7 @@ METHODS
     Creates a new spreadsheet object. It takes a list of options. The
     following are valid:
 
-        file        filename of the new spreadsheet (mandatory)
+        file        filename of the new spreadsheet or an IO handle (mandatory)
         encoding    encoding of output file (optional, csv format only)
         format      format of spreadsheet - 'csv', 'xls', or 'auto' (default).
         sheet       Sheet name (optional, xls format only)
@@ -67,6 +67,9 @@ METHODS
 
     If file format is 'auto' (or omitted), the format is guessed from the
     filename extention. If impossible to guess the format defaults to 'csv'.
+
+    An IO-like handle can be given as 'file' argument (IO::File, IO::Scalar,
+    etc). In this case the format argument is mandatory.
 
   addrow(arg1,arg2,...)
     Adds a row into the spreadsheet. Takes arbitrary number of arguments.
@@ -116,6 +119,18 @@ METHODS
     detection is automatic, as done by for instance Spreadsheet::WriteExcel
     write() method.
 
+    It is also possible to supply an array reference in the 'content'
+    parameter of the extended format. It means to use the same formatting
+    for as many cells as there are elements in this array. Useful for
+    creating header rows. For instance, the above example can be rewritten
+    as:
+
+        $sp->addrow(
+            { style => 'header',
+              content => [ 'First Name','Last Name','Age' ],
+            }
+        );
+
     For CSV format all extra arguments are safely ignored.
 
   addsheet(name)
@@ -130,5 +145,6 @@ METHODS
     Spreadsheet::WriteExcel->freeze_panes(). Ignored for CSV files.
 
 AUTHORS
-    Nick Eremeev <nick.eremeev@gmail.com> http://ejelta.com/
+    Nick Eremeev <nick.eremeev@gmail.com>; Andrew Maltsev <am@ejelta.com>;
+    http://ejelta.com/
 

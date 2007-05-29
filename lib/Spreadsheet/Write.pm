@@ -67,7 +67,7 @@ use Spreadsheet::WriteExcel;
 
 BEGIN {
   use vars       qw($VERSION);
-  $VERSION =     '0.02';
+  $VERSION =     '0.04';
 }
 
 sub version {
@@ -88,7 +88,7 @@ sub version {
 Creates a new spreadsheet object. It takes a list of options. The
 following are valid:
 
-    file        filename of the new spreadsheet (mandatory)
+    file        filename of the new spreadsheet or an IO handle (mandatory)
     encoding    encoding of output file (optional, csv format only)
     format      format of spreadsheet - 'csv', 'xls', or 'auto' (default).
     sheet       Sheet name (optional, xls format only)
@@ -96,6 +96,9 @@ following are valid:
 
 If file format is 'auto' (or omitted), the format is guessed from the
 filename extention. If impossible to guess the format defaults to 'csv'.
+
+An IO-like handle can be given as 'file' argument (IO::File, IO::Scalar,
+etc). In this case the format argument is mandatory.
 
 =cut
 
@@ -116,6 +119,7 @@ sub new(@) {
 
     my $format=$args->{'format'} || 'auto';
     if($format eq 'auto') {
+        die "Need a 'format' argument for IO-handle in 'file'" if ref $filename;
         $format=($filename=~/\.(.+)$/) ? lc($1) : 'csv';
     }
 
@@ -147,11 +151,13 @@ sub close {
     return if $self->{'_CLOSED'};
 
     if($self->{'_FORMAT'} eq 'csv') {
-        $self->{'_FH'}->close if $self->{'_FH'};
     }
     elsif($self->{'_FORMAT'} eq 'xls') {
         $self->{'_WORKBOOK'}->close if $self->{'_WORKBOOK'};
-        $self->{'_FH'}->close if $self->{'_FH'};
+    }
+
+    if($self->{'_FH'} && $self->{'_EXT_HANDLE'}) {
+        $self->{'_FH'}->close;
     }
 
     $self->{'_CLOSED'}=1;
@@ -175,9 +181,16 @@ sub _open($) {
 
     if(!$fh) {
         my $filename=$self->{'_FILENAME'} || return undef;
-        $fh=new IO::File;
-        $fh->open($filename,"w") || die "Can't open file $filename for writing: $!";
-        $self->{'_FH'}=$fh;
+
+        if(ref($filename)) {
+            $fh=$filename;
+            $self->{'_EXT_HANDLE'}=1;
+        }
+        else {
+            $fh=new IO::File;
+            $fh->open($filename,"w") || die "Can't open file $filename for writing: $!";
+            $self->{'_FH'}=$fh;
+        }
     }
 
     if($self->{'_FORMAT'} eq 'xls') {
@@ -195,6 +208,7 @@ sub _open($) {
     elsif($self->{'_FORMAT'} eq 'csv') {
         $self->{'_CSV_OBJ'}||=Text::CSV->new;
     }
+
     return $self;
 }
 
@@ -208,9 +222,11 @@ sub _format_cache($$) {
     foreach my $key (sort keys %$format) {
         $cache_key.=$key.$format->{$key};
     }
+
     if(exists($self->{'_FORMAT_CACHE'}->{$cache_key})) {
         return $self->{'_FORMAT_CACHE'}->{$cache_key};
     }
+
     return $self->{'_FORMAT_CACHE'}->{$cache_key}=$self->{'_WORKBOOK'}->add_format(%$format);
 }
 
@@ -264,6 +280,18 @@ style.
 If you want to store text that looks like a number you might want to use
 { type => 'string', format => '@' } arguments. By default the type detection is automatic,
 as done by for instance L<Spreadsheet::WriteExcel> write() method.
+
+It is also possible to supply an array reference in the 'content'
+parameter of the extended format. It means to use the same formatting
+for as many cells as there are elements in this array. Useful for
+creating header rows. For instance, the above example can be rewritten
+as:
+
+    $sp->addrow(
+        { style => 'header',
+          content => [ 'First Name','Last Name','Age' ],
+        }
+    );
 
 For CSV format all extra arguments are safely ignored.
 
@@ -384,7 +412,6 @@ sub addrow (@) {
 
             my @params=($row,$col++,$value);
 
-#            push(@params,$workbook->add_format(%format)) if keys %format;
             push(@params,$self->_format_cache(\%format)) if keys %format;
 
             my $type=($props ? $props->{'type'} : '') || 'auto';
@@ -462,5 +489,5 @@ __END__
 
 =head1 AUTHORS
 
-Nick Eremeev <nick.eremeev@gmail.com>
+Nick Eremeev <nick.eremeev@gmail.com>; Andrew Maltsev <am@ejelta.com>;
 http://ejelta.com/
