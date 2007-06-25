@@ -23,6 +23,7 @@ Spreadsheet::Write - Simplified writer for CSV or XLS (MS Excel) files
         style           => 'money',
         font_weight     => 'bold',
         font_color      => 42,
+        bg_color        => 'gray',
         font_face       => 'Times New Roman',
         font_size       => 20,
         align           => 'center',
@@ -249,6 +250,7 @@ parameters may be passed:
     font_face       font of column; default is 'Arial'
     font_color      color of font (see Spreadsheet::WriteExcel for color values)
     font_size       size of font
+    bg_color        color of background (see Spreadsheet::WriteExcel for color values)
     align           alignment
     valign          vertical alignment
     width           column width, excel units (only makes sense once per column)
@@ -389,6 +391,9 @@ sub addrow (@) {
                 }
                 if($props->{'font_color'}) {
                     $format{'color'}=$props->{'font_color'};
+                }
+                if($props->{'bg_color'}) {
+                    $format{'bg_color'}=$props->{'bg_color'};
                 }
                 if($props->{'font_face'}) {
                     $format{'font'}=$props->{'font_face'};
