@@ -21,6 +21,7 @@ SYNOPSIS
             style           => 'money',
             font_weight     => 'bold',
             font_color      => 42,
+            bg_color        => 'gray',
             font_face       => 'Times New Roman',
             font_size       => 20,
             align           => 'center',
@@ -87,9 +88,11 @@ METHODS
         font_face       font of column; default is 'Arial'
         font_color      color of font (see Spreadsheet::WriteExcel for color values)
         font_size       size of font
+        bg_color        color of background (see Spreadsheet::WriteExcel for color values)
         align           alignment
         valign          vertical alignment
         width           column width, excel units (only makes sense once per column)
+        height          row height, excel units (only makes sense once per row)
 
     Styles can be used to assign default values for any of these formatting
     parameters thus allowing easy global changes. Other parameters specified

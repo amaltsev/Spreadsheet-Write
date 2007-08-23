@@ -254,6 +254,7 @@ parameters may be passed:
     align           alignment
     valign          vertical alignment
     width           column width, excel units (only makes sense once per column)
+    height          row height, excel units (only makes sense once per row)
 
 Styles can be used to assign default values for any of these formatting
 parameters thus allowing easy global changes. Other parameters specified
@@ -412,6 +413,9 @@ sub addrow (@) {
                 }
                 if($props->{'width'}) {
                     $worksheet->set_column($col,$col,$props->{'width'});
+                }
+                if($props->{'height'}) {
+                    $worksheet->set_row($row,$props->{'height'});
                 }
             }
 
