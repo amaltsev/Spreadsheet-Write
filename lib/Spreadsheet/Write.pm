@@ -121,7 +121,7 @@ sub new(@) {
     my $format=$args->{'format'} || 'auto';
     if($format eq 'auto') {
         die "Need a 'format' argument for IO-handle in 'file'" if ref $filename;
-        $format=($filename=~/\.(.+?)$/) ? lc($1) : 'csv';
+        $format=($filename=~/.*\.(.+?)$/) ? lc($1) : 'csv';
     }
 
     if(($format ne 'csv') && ($format ne 'xls')) {
