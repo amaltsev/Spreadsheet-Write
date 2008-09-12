@@ -190,6 +190,7 @@ sub _open($) {
         else {
             $fh=new IO::File;
             $fh->open($filename,"w") || die "Can't open file $filename for writing: $!";
+            $fh->binmode();
             $self->{'_FH'}=$fh;
         }
     }
