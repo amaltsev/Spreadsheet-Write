@@ -62,17 +62,17 @@ require 5.008_001;
 
 use strict;
 use IO::File;
-use Text::CSV;
-use Encode;
-use Spreadsheet::WriteExcel;
+### use Text::CSV;
+### use Encode;
+### use Spreadsheet::WriteExcel;
 
 BEGIN {
-  use vars       qw($VERSION);
-  $VERSION =     '0.04';
+    use vars       qw($VERSION);
+    $VERSION =     '0.05';
 }
 
 sub version {
-  return $VERSION;
+    return $VERSION;
 }
 
 ###############################################################################
@@ -91,8 +91,9 @@ following are valid:
 
     file        filename of the new spreadsheet or an IO handle (mandatory)
     encoding    encoding of output file (optional, csv format only)
-    format      format of spreadsheet - 'csv', 'xls', or 'auto' (default).
-    sheet       Sheet name (optional, xls format only)
+    format      format of spreadsheet - 'csv', 'xls', 'html',
+                'xhtml', 'xml', 'ods', 'json', or 'auto' (default).
+    sheet       Sheet name (optional, not supported by some formats)
     styles      Defines cell formatting shortcuts (optional)
 
 If file format is 'auto' (or omitted), the format is guessed from the
@@ -101,22 +102,26 @@ filename extention. If impossible to guess the format defaults to 'csv'.
 An IO-like handle can be given as 'file' argument (IO::File, IO::Scalar,
 etc). In this case the format argument is mandatory.
 
+Default styles are:
+    header => {
+        font_weight     => 'bold',
+        type            => 'string',
+    },
+    ntext => {
+        format          => '@',
+        type            => 'string',
+    },
+    money => {
+        format          => '$#,##0.00;-$#,##0.00',
+    },
+
 =cut
 
 sub new(@) {
     my $proto = shift;
-    my $args={@_};
-
-    my $class = ref($proto) || $proto;
-    my $self = {};
-
-    bless $self, $class;
+    my $args=ref($_[0]) eq 'HASH' ? $_[0] : {@_};
 
     my $filename=$args->{'file'} || $args->{'filename'} || die 'No file given';
-
-    $self->{'_FILENAME'}=$filename;
-
-    $self->{'_SHEETNAME'}=$args->{'sheet'} || '';
 
     my $format=$args->{'format'} || 'auto';
     if($format eq 'auto') {
@@ -124,44 +129,52 @@ sub new(@) {
         $format=($filename=~/.*\.(.+?)$/) ? lc($1) : 'csv';
     }
 
-    if(($format ne 'csv') && ($format ne 'xls')) {
+    # Some commonly used styles
+    #
+    my %parm=%{$args};
+    $parm{'styles'}->{'ntext'}||={
+        format          => '@',
+        type            => 'string',
+    };
+    $parm{'styles'}->{'header'}||={
+        font_weight     => 'bold',
+        type            => 'string',
+    };
+    $parm{'styles'}->{'money'}||={
+        format          => '$#,##0.00;-$#,##0.00',
+    };
+
+    my $implementation={
+        csv     => 'CSV',
+        excel   => 'Excel',
+        html    => 'HTML',
+        json    => 'JSON',
+        ods     => 'OpenDocument',
+        odsxml  => 'OpenDocumentXML',
+        text    => 'CSV',
+        txt     => 'CSV',
+        xhtml   => 'XHTML',
+        xls     => 'Excel',
+        xml     => 'OpenDocumentXML',
+    }->{lc $format};
+
+    $implementation ||
         die "Format $format is not supported";
-    }
 
-    $self->{'_FORMAT'}=$format;
+    $implementation=join('::',(__PACKAGE__,$implementation));
 
-    $self->{'_STYLES'}=$args->{'styles'} || { };
+    eval "use $implementation;";
+    die $@ if $@;
 
-    ### $self->_open();
-
-    return $self;
+    return $implementation->new(%parm);
 }
 
 ###############################################################################
 
 sub DESTROY {
     my $self=shift;
+    ### print STDERR "DESTROY: ".ref($self)."\n";
     $self->close();
-}
-
-###############################################################################
-
-sub close {
-    my $self=shift;
-
-    return if $self->{'_CLOSED'};
-
-    if($self->{'_FORMAT'} eq 'csv') {
-    }
-    elsif($self->{'_FORMAT'} eq 'xls') {
-        $self->{'_WORKBOOK'}->close if $self->{'_WORKBOOK'};
-    }
-
-    if($self->{'_FH'} && $self->{'_EXT_HANDLE'}) {
-        $self->{'_FH'}->close;
-    }
-
-    $self->{'_CLOSED'}=1;
 }
 
 ###############################################################################
@@ -190,46 +203,18 @@ sub _open($) {
         else {
             $fh=new IO::File;
             $fh->open($filename,"w") || die "Can't open file $filename for writing: $!";
-            $fh->binmode();
+            $fh->binmode(':utf8');
             $self->{'_FH'}=$fh;
         }
     }
 
-    if($self->{'_FORMAT'} eq 'xls') {
-        my $worksheet=$self->{'_WORKSHEET'};
-        my $workbook=$self->{'_WORKBOOK'};
-        if(!$worksheet) {
-            $fh->binmode();
-            $workbook=Spreadsheet::WriteExcel->new($fh);
-            $self->{'_WORKBOOK'}=$workbook;
-            $worksheet = $workbook->add_worksheet($self->{'_SHEETNAME'});
-            $self->{'_WORKSHEET'}=$worksheet;
-            $self->{'_WORKBOOK_ROW'}=0;
-        }
-    }
-    elsif($self->{'_FORMAT'} eq 'csv') {
-        $self->{'_CSV_OBJ'}||=Text::CSV->new;
-    }
-
-    return $self;
+    return $self->_prepare;
 }
 
 ###############################################################################
 
-sub _format_cache($$) {
-    my $self=shift;
-    my $format=shift;
-    
-    my $cache_key='';
-    foreach my $key (sort keys %$format) {
-        $cache_key.=$key.$format->{$key};
-    }
-
-    if(exists($self->{'_FORMAT_CACHE'}->{$cache_key})) {
-        return $self->{'_FORMAT_CACHE'}->{$cache_key};
-    }
-
-    return $self->{'_FORMAT_CACHE'}->{$cache_key}=$self->{'_WORKBOOK'}->add_format(%$format);
+sub _prepare {
+    # no-op by default
 }
 
 ###############################################################################
@@ -237,17 +222,17 @@ sub _format_cache($$) {
 =head2 addrow(arg1,arg2,...)
 
 Adds a row into the spreadsheet. Takes arbitrary number of
-arguments. Arguments represent column values and may be strings or hash
-references. If an argument is a hash reference, additional optional
-parameters may be passed:
+arguments. Arguments represent cell values and may be strings or hash
+references. If an argument is a hash reference, it takes the following
+structure:
 
-    content         value to put into column
+    content         value to put into the cell
     style           formatting style, as defined in new()
     type            type of the content (defaults to 'auto')
     format          number format (see Spreadsheet::WriteExcel for details)
     font_weight     weight of font. Only valid value is 'bold'
     font_style      style of font. Only valid value is 'italic'
-    font_decoration 'underline' or 'strikeout'
+    font_decoration 'underline' or 'strikeout' (or both, space separated)
     font_face       font of column; default is 'Arial'
     font_color      color of font (see Spreadsheet::WriteExcel for color values)
     font_size       size of font
@@ -297,149 +282,67 @@ as:
         }
     );
 
-For CSV format all extra arguments are safely ignored.
+Not all styling options are supported in all formats. Where they are not
+supported they are safely ignored.
 
 =cut
 
 sub addrow (@) {
-    my $self=shift;
-    my $parts=(@_ ? \@_ : [ '' ]);
-
-    my @texts;
-    my @props;
-
+    my $self = shift;
     $self->_open() || return undef;
-
-    foreach my $part (@$parts) {
-        if(ref($part) && (ref($part) eq 'HASH')) {
-            my $content=$part->{'content'};
-            if(ref($content) && (ref($content) eq 'ARRAY')) {
-                foreach my $elt (@$content) {
-                    push(@texts,$elt);
-                    push(@props,$part);
+    
+    my @cells;
+    
+    foreach my $item (@_) {
+        if (ref $item eq 'HASH') {
+            if (ref $item->{'content'} eq 'ARRAY') {
+                foreach my $i (@{ $item->{'content'} }) {
+                    my %newitem = %$item;
+                    $newitem{'content'} = $i;
+                    push @cells, \%newitem;
                 }
             }
             else {
-                push(@texts,$part->{'content'});
-                push(@props,$part);
+                push @cells, $item;
             }
         }
         else {
-            push(@texts,$part);
-            push(@props,undef);
+            push @cells, { content => $item };
         }
     }
-    if($self->{'_FORMAT'} eq 'csv') {
-        my $string;
-        my $nparts=scalar(@texts);
-        for(my $i=0; $i<$nparts; $i++) {
-            $texts[$i]=~s/([^\x20-\x7e])/'&#' . ord($1) . ';'/esg;
-        }
+    
+    return $self->_add_prepared_row(@cells);    
+}
 
-        $self->{'_CSV_OBJ'}->combine(@texts) ||
-            die "csv_combine failed at ".$self->{'_CSV_OBJ'}->error_input();
+###############################################################################
 
-        $string=$self->{'_CSV_OBJ'}->string();
-        $string=~s/&#(\d+);/chr($1)/esg;
-        $string=Encode::decode('utf8',$string) unless Encode::is_utf8($string);
-        $string=Encode::encode($self->{'_ENCODING'} || 'utf8',$string);
-        $self->{'_FH'}->print($string."\n");
+=head2 addrows([$cell1A,$cell1B,...],[$cell2A,$cell2B,...],...)
 
-        return $self;
-    }
-    elsif($self->{'_FORMAT'} eq 'xls') {
-        my $worksheet=$self->{'_WORKSHEET'};
-        my $workbook=$self->{'_WORKBOOK'};
-        my $row=$self->{'_WORKBOOK_ROW'};
-        my $col=0;
-        my $nparts=scalar(@texts);
-        for(my $i=0; $i<$nparts; $i++) {
-            my $value=$texts[$i];
-            my $props=$props[$i];
+Shortcut for adding multiple rows.
 
-            my %format;
-            if($props) {
-                if(my $style=$props->{'style'}) {
-                    my $stprops=$self->{'_STYLES'}->{$style};
-                    if(!$stprops) {
-                        warn "Style '$style' is not defined\n";
-                    }
-                    else {
-                        my %a;
-                        @a{keys %$stprops}=values %$stprops;
-                        @a{keys %$props}=values %$props;
-                        $props=\%a;
-                    }
-                }
+Each argument is an arrayref representing a row.
 
-                if($props->{'font_weight'}) {
-                    if($props->{'font_weight'} eq 'bold') {
-                        $format{'bold'}=1;
-                    }
-                }
-                if($props->{'font_style'}) {
-                    if($props->{'font_style'} eq 'italic') {
-                        $format{'italic'}=1;
-                    }
-                }
-                my $decor=$props->{'font_decoration'};
-                if($decor) {
-                    if($decor eq 'underline') {
-                        $format{'underline'}=1;
-                    }
-                    elsif($decor eq 'strikeout') {
-                        $format{'font_strikeout'}=1;
-                    }
-                }
-                if($props->{'font_color'}) {
-                    $format{'color'}=$props->{'font_color'};
-                }
-                if($props->{'bg_color'}) {
-                    $format{'bg_color'}=$props->{'bg_color'};
-                }
-                if($props->{'font_face'}) {
-                    $format{'font'}=$props->{'font_face'};
-                }
-                if($props->{'font_size'}) {
-                    $format{'size'}=$props->{'font_size'};
-                }
-                if($props->{'align'}) {
-                    $format{'align'}=$props->{'align'};
-                }
-                if($props->{'valign'}) {
-                    $format{'valign'}=$props->{'valign'};
-                }
-                if($props->{'format'}) {
-                    $format{'num_format'}=$props->{'format'};
-                }
-                if($props->{'width'}) {
-                    $worksheet->set_column($col,$col,$props->{'width'});
-                }
-                if($props->{'height'}) {
-                    $worksheet->set_row($row,$props->{'height'});
-                }
-            }
+Any argument that is not a reference (i.e. a scalar) is taken to be the
+title of a new worksheet.
 
-            my @params=($row,$col++,$value);
+=cut
 
-            push(@params,$self->_format_cache(\%format)) if keys %format;
+sub addrows (@) {
+	my $self=shift;
 
-            my $type=($props ? $props->{'type'} : '') || 'auto';
-            if($type eq 'auto')         { $worksheet->write(@params); }
-            elsif($type eq 'string')    { $worksheet->write_string(@params); }
-            elsif($type eq 'text')      { $worksheet->write_string(@params); }
-            elsif($type eq 'number')    { $worksheet->write_number(@params); }
-            elsif($type eq 'blank')     { $worksheet->write_blank(@params); }
-            elsif($type eq 'formula')   { $worksheet->write_formula(@params); }
-            elsif($type eq 'url')       { $worksheet->write_url(@params); }
-            else{
-                warn "Unknown cell type $type";
-                $worksheet->write(@params);
-            }
-        }
-        $self->{'_WORKBOOK_ROW'}++;
-    }
-    return $self;
+	foreach my $row (@_) {
+		if (ref $row eq 'ARRAY') {
+			$self->addrow(@$row);
+		}
+		elsif (!ref $row) {
+			$self->addsheet($row);
+		}
+		else {
+			warn "Unsupported row format '".ref($row)."'";
+		}
+	}
+
+	return $self;
 }
 
 ###############################################################################
@@ -455,20 +358,7 @@ currently.
 =cut
 
 sub addsheet ($$) {
-    my ($self,$name)=@_;
-
-    $self->_open() || return undef;
-
-    if($self->{'_FORMAT'} eq 'xls') {
-        my $workbook=$self->{'_WORKBOOK'};
-        my $worksheet=$workbook->add_worksheet($name);
-        $self->{'_SHEETNAME'}=$name;
-        $self->{'_WORKSHEET'}=$worksheet;
-        $self->{'_WORKBOOK_ROW'}=0;
-    }
-    elsif($self->{'_FORMAT'} eq 'csv') {
-        die "addsheet() is not supported for CSV format";
-    }
+    die (((caller(0))[3])." - pure virtual method called");
 }
 
 ###############################################################################
@@ -481,15 +371,26 @@ Ignored for CSV files.
 =cut
 
 sub freeze (@) {
-    my $self=shift;
+    return shift;
+}
 
-    $self->_open() || return undef;
+###############################################################################
 
-    if($self->{'_FORMAT'} eq 'xls') {
-        $self->{'_WORKSHEET'}->freeze_panes(@_);
-    }
+=head2 close()
+  
+Saves the spreadsheet to disk (some of the modules save incrementally
+anyway) and closes the file. Calling this explicitly is usually
+un-necessary, as the Perl garbage collector will do the job eventually
+anyway. Once a spreadsheet is closed, calls to addrow() will fail.
+  
+=cut
 
-    return $self;
+sub close {
+    ### print STDERR "0: ".join("/",map { $_ || 'UNDEF' } caller(0))."\n";
+    ### print STDERR "1: ".join("/",map { $_ || 'UNDEF' } caller(1))."\n";
+    ### print STDERR "2: ".join("/",map { $_ || 'UNDEF' } caller(2))."\n";
+    ### print STDERR "3: ".join("/",map { $_ || 'UNDEF' } caller(3))."\n";
+    die (((caller(0))[3])." - pure virtual method called");
 }
 
 ###############################################################################
@@ -499,5 +400,8 @@ __END__
 
 =head1 AUTHORS
 
-Nick Eremeev <nick.eremeev@gmail.com>; Andrew Maltsev <am@ejelta.com>;
+Written by Nick Eremeev <nick.eremeev@gmail.com>; Andrew Maltsev <am@ejelta.com>;
 http://ejelta.com/
+
+With multiple backends implementation and other patches
+by Toby Inkster <tobyink@cpan.org>
