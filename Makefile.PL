@@ -5,6 +5,7 @@ WriteMakefile(
     'PREREQ_PM'     => {
         'Spreadsheet::WriteExcel'   => '2.15',
         'Text::CSV'                 => '1.18',
+        'common::sense'             => '3.2',
     },
 );
 
