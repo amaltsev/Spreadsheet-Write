@@ -6,6 +6,8 @@ WriteMakefile(
         'Spreadsheet::WriteExcel'   => '2.15',
         'Text::CSV'                 => '1.18',
         'common::sense'             => '3.2',
+        'Test::Unit'                => '0.24',
+        'XAO::Base'                 => '1.07',
     },
 );
 

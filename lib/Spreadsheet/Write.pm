@@ -47,9 +47,10 @@ Spreadsheet::Write - Simplified writer for CSV or XLS (MS Excel) files
 
 =head1 DESCRIPTION
 
-C<Spreadsheet::Write> writes files in CSV or XLS (Microsoft Excel)
-formats. It is especially suitable for building various dumps and
-reports where rows are built in sequence, one after another.
+C<Spreadsheet::Write> writes files in CSV, XLS (Microsoft Excel), Open
+Office, and other formats. It is especially suitable for building
+various dumps and reports where rows are built in sequence, one after
+another.
 
 =head1 METHODS
 
@@ -62,9 +63,6 @@ require 5.008_001;
 
 use strict;
 use IO::File;
-### use Text::CSV;
-### use Encode;
-### use Spreadsheet::WriteExcel;
 
 BEGIN {
     use vars       qw($VERSION);
