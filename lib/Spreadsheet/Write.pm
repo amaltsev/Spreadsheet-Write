@@ -75,7 +75,7 @@ sub version {
 
 ###############################################################################
 
-=head2 new()
+=head2 new ()
 
     $spreadsheet = Spreadsheet::Write->new(
         file            => 'table.xls',
@@ -374,12 +374,14 @@ sub freeze (@) {
 
 ###############################################################################
 
-=head2 close()
+=head2 close ()
   
-Saves the spreadsheet to disk (some of the modules save incrementally
-anyway) and closes the file. Calling this explicitly is usually
-un-necessary, as the Perl garbage collector will do the job eventually
-anyway. Once a spreadsheet is closed, calls to addrow() will fail.
+Finalizes the spreadsheet and closes the file. It is a good idea
+to call this method explicitly instead of relying on perl's garbage
+collector because for many formats the file may be in an unusable
+state until this method is called.
+
+Once a spreadsheet is closed, calls to addrow() will fail.
   
 =cut
 
@@ -401,5 +403,4 @@ __END__
 Written by Nick Eremeev <nick.eremeev@gmail.com>; Andrew Maltsev <am@ejelta.com>;
 http://ejelta.com/
 
-With multiple backends implementation and other patches
-by Toby Inkster <tobyink@cpan.org>
+Multiple backends implementation and other patches by Toby Inkster <tobyink@cpan.org>
