@@ -202,9 +202,10 @@ sub _open($) {
             $fh=new IO::File;
             $fh->open($filename,"w") || die "Can't open file $filename for writing: $!";
             $fh->binmode(':utf8');
-            $self->{'_FH'}=$fh;
         }
     }
+
+    $self->{'_FH'}=$fh;
 
     return $self->_prepare;
 }
