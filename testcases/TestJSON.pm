@@ -8,7 +8,9 @@ sub test_text_format {
 
     $self->check_package('JSON') || return;
 
-    $self->spreadsheet_test('json');
+    warn "JSON tests are not implemented\n";
+
+    ### $self->spreadsheet_test('json');
 }
 
 1;
