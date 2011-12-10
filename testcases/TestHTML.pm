@@ -8,7 +8,9 @@ sub test_text_format {
 
     $self->check_package('HTML::HTML5::Writer') || return;
 
-    $self->spreadsheet_test('html');
+    warn "HTML tests are not implemented\n";
+
+    ### $self->spreadsheet_test('html');
 }
 
 1;

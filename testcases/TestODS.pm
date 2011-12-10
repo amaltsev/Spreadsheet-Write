@@ -9,10 +9,9 @@ sub test_text_format {
     $self->check_package('Archive::Zip') || return;
     $self->check_package('XML::LibXML') || return;
 
-    # TODO: How do we test this format output?
-    #
-    $self->spreadsheet_build('ods');
-    ### $self->spreadsheet_test('xml');
+    warn "ODS tests are not implemented\n";
+
+    ### $self->spreadsheet_build('ods');
 }
 
 1;
