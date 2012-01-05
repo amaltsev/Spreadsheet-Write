@@ -18,7 +18,7 @@ sub new
 	$self->{'_FILENAME'}  = $filename;
 	$self->{'_SHEETNAME'} = $args{'sheet'}  || '';
 	$self->{'_STYLES'}    = $args{'styles'} || {};
-		
+
 	return $self;
 }
 
