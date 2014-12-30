@@ -98,6 +98,7 @@ METHODS
         valign          vertical alignment
         width           column width, excel units (only makes sense once per column)
         height          row height, excel units (only makes sense once per row)
+        comment         hidden comment for the cell, where supported
 
     Styles can be used to assign default values for any of these formatting
     parameters thus allowing easy global changes. Other parameters specified
