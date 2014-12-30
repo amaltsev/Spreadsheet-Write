@@ -240,6 +240,7 @@ structure:
     valign          vertical alignment
     width           column width, excel units (only makes sense once per column)
     height          row height, excel units (only makes sense once per row)
+    comment         hidden comment for the cell, where supported
 
 Styles can be used to assign default values for any of these formatting
 parameters thus allowing easy global changes. Other parameters specified
@@ -289,9 +290,9 @@ supported they are safely ignored.
 sub addrow (@) {
     my $self = shift;
     $self->_open() || return undef;
-    
+
     my @cells;
-    
+
     foreach my $item (@_) {
         if (ref $item eq 'HASH') {
             if (ref $item->{'content'} eq 'ARRAY') {
@@ -309,8 +310,8 @@ sub addrow (@) {
             push @cells, { content => $item };
         }
     }
-    
-    return $self->_add_prepared_row(@cells);    
+
+    return $self->_add_prepared_row(@cells);
 }
 
 ###############################################################################
@@ -376,14 +377,14 @@ sub freeze (@) {
 ###############################################################################
 
 =head2 close ()
-  
+
 Finalizes the spreadsheet and closes the file. It is a good idea
 to call this method explicitly instead of relying on perl's garbage
 collector because for many formats the file may be in an unusable
 state until this method is called.
 
 Once a spreadsheet is closed, calls to addrow() will fail.
-  
+
 =cut
 
 sub close {

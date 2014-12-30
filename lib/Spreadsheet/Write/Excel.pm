@@ -12,9 +12,9 @@ sub new
 {
 	my ($class, %args) = @_;
 	my $self = bless {}, $class;
-	
+
 	my $filename = $args{'file'} || $args{'filename'} || die "Need filename.";
-	
+
 	$self->{'_FILENAME'}  = $filename;
 	$self->{'_SHEETNAME'} = $args{'sheet'}  || '';
 	$self->{'_STYLES'}    = $args{'styles'} || {};
@@ -27,7 +27,7 @@ sub _prepare
 	my $self = shift;
 	my $worksheet = $self->{'_WORKSHEET'};
 	my $workbook  = $self->{'_WORKBOOK'};
-	
+
 	if(!$worksheet)
 	{
 		$self->{'_FH'}->binmode();
@@ -37,7 +37,7 @@ sub _prepare
 		$self->{'_WORKSHEET'} = $worksheet;
 		$self->{'_WORKBOOK_ROW'} = 0;
 	}
-	
+
 	return $self;
 }
 
@@ -52,15 +52,15 @@ sub freeze (@)
 sub close
 {
 	my $self=shift;
-	
+
 	return if $self->{'_CLOSED'};
-	
+
 	$self->{'_WORKBOOK'}->close
 		if $self->{'_WORKBOOK'};
-		
+
 	$self->{'_FH'}->close
 		if $self->{'_FH'};
-		
+
 	$self->{'_CLOSED'} = 1;
 	return $self;
 }
@@ -93,7 +93,7 @@ sub addsheet ($$)
 	$self->{'_SHEETNAME'} = $name;
 	$self->{'_WORKSHEET'} = $worksheet;
 	$self->{'_WORKBOOK_ROW'} = 0;
-	
+
 	return $self;
 }
 
@@ -105,12 +105,12 @@ sub _add_prepared_row
 	my $workbook  = $self->{'_WORKBOOK'};
 	my $row       = $self->{'_WORKBOOK_ROW'};
 	my $col       = 0;
-	
+
 	for(my $i=0; $i<scalar(@_); $i++)
 	{
 		my %props = %{ $_[$i] };
 		my $value = $props{'content'};
-		
+
 		delete $props{'content'};
 		my $props = \%props;
 
@@ -177,6 +177,10 @@ sub _add_prepared_row
 			{
 				$worksheet->set_column($col,$col,$props->{'width'});
 			}
+            if (defined $props->{'comment'} && length($props->{'comment'}))
+            {
+                $worksheet->write_comment($row,$col,$props->{'comment'});
+            }
 		}
 
 		my @params = ($row, $col++, $value);
@@ -196,9 +200,9 @@ sub _add_prepared_row
 			$worksheet->write(@params);
 		}
 	}
-	
+
 	$self->{'_WORKBOOK_ROW'}++;
-	
+
 	return $self;
 }
 
