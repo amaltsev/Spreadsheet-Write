@@ -117,20 +117,22 @@ sub _add_prepared_row
 		my %format;
 		if(%props)
 		{
-			if(my $style = $props->{'style'})
+			if(my $stylelist = $props->{'style'})
 			{
-				my $stprops = $self->{'_STYLES'}->{$style};
-				if(!$stprops)
-				{
-					# warn "Style '$style' is not defined\n";
-				}
-				else
-				{
-					my %a;
-					@a{keys %$stprops} = values %$stprops;
-					@a{keys %$props} = values %$props;
-					$props=\%a;
-				}
+                $stylelist=[$stylelist] unless ref $stylelist;
+
+                foreach my $style (ref $stylelist ? @$stylelist : ($stylelist)) {
+				    my $stprops = $self->{'_STYLES'}->{$style};
+				    if(!$stprops) {
+					    warn "Style '$style' is not defined\n";
+				    }
+				    else {
+					    my %a;
+					    @a{keys %$stprops} = values %$stprops;
+					    @a{keys %$props} = values %$props;
+					    $props=\%a;
+				    }
+                }
 			}
 
 			if ($props->{'font_weight'} eq 'bold')
@@ -153,6 +155,10 @@ sub _add_prepared_row
 			{
 				$format{'color'} = $props->{'font_color'};
 			}
+            if (defined $props->{'bg_color'})
+            {
+                $format{'bg_color'} = $props->{'bg_color'};
+            }
 			if (defined $props->{'font_face'})
 			{
 				$format{'font'}=$props->{'font_face'};

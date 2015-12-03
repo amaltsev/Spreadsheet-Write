@@ -8,7 +8,13 @@ sub test_text_format {
 
     $self->check_package('XML::LibXML') || return;
 
-    $self->spreadsheet_test('xml');
+    # The simple text comparison test does not work for XML because tag
+    # attributes might get output in a random order. The same is true
+    # for JSON. They need to be parsed and compared with something like
+    # Data::Compare.
+    #
+    warn "XML tests are not implemented\n";
+    ### $self->spreadsheet_test('xml');
 }
 
 1;

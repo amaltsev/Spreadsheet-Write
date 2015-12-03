@@ -66,7 +66,7 @@ use IO::File;
 
 BEGIN {
     use vars       qw($VERSION);
-    $VERSION =     '0.06';
+    $VERSION =     '0.07';
 }
 
 sub version {
@@ -226,7 +226,7 @@ references. If an argument is a hash reference, it takes the following
 structure:
 
     content         value to put into the cell
-    style           formatting style, as defined in new()
+    style           formatting style, as defined in new(), scalar or array-ref
     type            type of the content (defaults to 'auto')
     format          number format (see Spreadsheet::WriteExcel for details)
     font_weight     weight of font. Only valid value is 'bold'
