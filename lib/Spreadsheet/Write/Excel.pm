@@ -106,6 +106,9 @@ sub _add_prepared_row
 	my $row       = $self->{'_WORKBOOK_ROW'};
 	my $col       = 0;
 
+    scalar(@_) < 256 ||
+        die "Excel'97 back-end does not support rows 256 elements or longer";
+
 	for(my $i=0; $i<scalar(@_); $i++)
 	{
 		my %props = %{ $_[$i] };
@@ -211,6 +214,5 @@ sub _add_prepared_row
 
 	return $self;
 }
-
 
 1;
