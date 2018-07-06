@@ -66,7 +66,7 @@ use IO::File;
 
 BEGIN {
     use vars       qw($VERSION);
-    $VERSION =     '0.08';
+    $VERSION =     '1.0';
 }
 
 sub version {
