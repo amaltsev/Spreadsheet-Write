@@ -1,23 +1,22 @@
-package Spreadsheet::Write::CSV;
+package Spreadsheet::Write::WriteCSV;
 
 use 5.008;
 use base qw'Spreadsheet::Write';
-use common::sense;
 
 use Text::CSV 1.18;
 
 sub new {
     my ($class, %args) = @_;
     my $self = bless {}, $class;
-    
+
     my $filename = $args{'file'} || $args{'filename'} || die "Need filename.";
     $self->{'_FILENAME'}    = $filename;
 
-    $args{'csv_options'}->{'sep_char'}  ||= ",";    
+    $args{'csv_options'}->{'sep_char'}  ||= ",";
     $args{'csv_options'}->{'eol'}       ||= $/;
 
     $self->{'_CSV_OPTIONS'} = $args{'csv_options'};
-    
+
     return $self;
 }
 
@@ -37,14 +36,14 @@ sub close {
 
 sub _add_prepared_row {
     my $self = shift;
-    
+
     my @texts;
     foreach (@_) {
         my $content = $_->{'content'};
-        
+
         $content = sprintf($content, $_->{'sprintf'})
             if $_->{'sprintf'};
-        
+
         push @texts, $content;
     }
 

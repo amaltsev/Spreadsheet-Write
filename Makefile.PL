@@ -5,9 +5,10 @@ WriteMakefile(
     'PREREQ_PM'     => {
         'Spreadsheet::WriteExcel'   => '2.15',
         'Text::CSV'                 => '1.18',
-        'common::sense'             => '3.2',
-        'Test::Unit'                => '0.24',
-        'XAO::Base'                 => '1.07',
+    },
+    'TEST_REQUIRES' => {
+        'Test::Unit::Lite'          => '0.1202',
+        'Encode'                    => '2.90',
     },
 );
 

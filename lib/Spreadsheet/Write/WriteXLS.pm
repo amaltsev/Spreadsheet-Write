@@ -1,10 +1,7 @@
-package Spreadsheet::Write::Excel;
-
-our $VERSION = '0.101_01';
+package Spreadsheet::Write::WriteXLS;
 
 use 5.008;
 use base qw'Spreadsheet::Write';
-use common::sense;
 
 use Spreadsheet::WriteExcel;
 

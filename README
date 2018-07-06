@@ -1,5 +1,6 @@
 NAME
-    Spreadsheet::Write - Simplified writer for CSV or XLS (MS Excel) files
+    Spreadsheet::Write - Simplified writer for CSV or XLS (MS Excel'97)
+    files
 
 SYNOPSIS
         # EXCEL spreadsheet
@@ -44,8 +45,8 @@ SYNOPSIS
         $h->addrow('foo','bar');
 
 DESCRIPTION
-    "Spreadsheet::Write" writes files in CSV, XLS (Microsoft Excel), Open
-    Office, and other formats. It is especially suitable for building
+    "Spreadsheet::Write" writes files in CSV, XLS (Microsoft Excel 97), and
+    potentially other formats. It is especially suitable for building
     various dumps and reports where rows are built in sequence, one after
     another.
 
@@ -63,8 +64,7 @@ METHODS
 
         file        filename of the new spreadsheet or an IO handle (mandatory)
         encoding    encoding of output file (optional, csv format only)
-        format      format of spreadsheet - 'csv', 'xls', 'html',
-                    'xhtml', 'xml', 'ods', 'json', or 'auto' (default).
+        format      format of spreadsheet - 'csv', 'xls', or 'auto' (default)
         sheet       Sheet name (optional, not supported by some formats)
         styles      Defines cell formatting shortcuts (optional)
 
@@ -175,5 +175,5 @@ AUTHORS
     <am@ejelta.com>; http://ejelta.com/
 
     Multiple backends implementation and other patches by Toby Inkster
-    <tobyink@cpan.org>
+    <tobyink@cpan.org> (see also a full fork at Spreadsheet::Wright).
 

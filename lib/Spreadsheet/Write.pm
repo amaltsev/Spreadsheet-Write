@@ -1,6 +1,6 @@
 =head1 NAME
 
-Spreadsheet::Write - Simplified writer for CSV or XLS (MS Excel) files
+Spreadsheet::Write - Simplified writer for CSV or XLS (MS Excel'97) files
 
 =head1 SYNOPSIS
 
@@ -47,8 +47,8 @@ Spreadsheet::Write - Simplified writer for CSV or XLS (MS Excel) files
 
 =head1 DESCRIPTION
 
-C<Spreadsheet::Write> writes files in CSV, XLS (Microsoft Excel), Open
-Office, and other formats. It is especially suitable for building
+C<Spreadsheet::Write> writes files in CSV, XLS (Microsoft Excel 97),
+and potentially other formats. It is especially suitable for building
 various dumps and reports where rows are built in sequence, one after
 another.
 
@@ -66,7 +66,7 @@ use IO::File;
 
 BEGIN {
     use vars       qw($VERSION);
-    $VERSION =     '0.07';
+    $VERSION =     '0.08';
 }
 
 sub version {
@@ -89,8 +89,7 @@ following are valid:
 
     file        filename of the new spreadsheet or an IO handle (mandatory)
     encoding    encoding of output file (optional, csv format only)
-    format      format of spreadsheet - 'csv', 'xls', 'html',
-                'xhtml', 'xml', 'ods', 'json', or 'auto' (default).
+    format      format of spreadsheet - 'csv', 'xls', or 'auto' (default)
     sheet       Sheet name (optional, not supported by some formats)
     styles      Defines cell formatting shortcuts (optional)
 
@@ -142,18 +141,13 @@ sub new(@) {
         format          => '$#,##0.00;-$#,##0.00',
     };
 
+    # CPAN ownership of Spreadsheet::Write::CSV and a number of other
+    # simpler names belongs to Toby Inkman, with Spreadsheet::Wright
+    # clone.
+    #
     my $implementation={
-        csv     => 'CSV',
-        excel   => 'Excel',
-        html    => 'HTML',
-        json    => 'JSON',
-        ods     => 'OpenDocument',
-        odsxml  => 'OpenDocumentXML',
-        text    => 'CSV',
-        txt     => 'CSV',
-        xhtml   => 'XHTML',
-        xls     => 'Excel',
-        xml     => 'OpenDocumentXML',
+        csv     => 'WriteCSV',
+        xls     => 'WriteXLS',
     }->{lc $format};
 
     $implementation ||
@@ -405,4 +399,5 @@ __END__
 Written by Nick Eremeev <nick.eremeev@gmail.com>; Andrew Maltsev <am@ejelta.com>;
 http://ejelta.com/
 
-Multiple backends implementation and other patches by Toby Inkster <tobyink@cpan.org>
+Multiple backends implementation and other patches by Toby Inkster
+<tobyink@cpan.org> (see also a full fork at L<Spreadsheet::Wright>).
