@@ -59,15 +59,12 @@ another.
 ###############################################################################
 package Spreadsheet::Write;
 
-require 5.008_001;
+require 5.008_009;
 
 use strict;
 use IO::File;
 
-BEGIN {
-    use vars       qw($VERSION);
-    $VERSION =     '1.0';
-}
+our $VERSION='1.01';
 
 sub version {
     return $VERSION;
@@ -394,10 +391,15 @@ sub close {
 1;
 __END__
 
+=head1 LICENSE
+
+This module is free software; you can redistribute it and/or modify it
+under the same terms as Perl itself.
+
 =head1 AUTHORS
 
 Written by Nick Eremeev <nick.eremeev@gmail.com>; Andrew Maltsev <am@ejelta.com>;
-http://ejelta.com/
+L<https://ejelta.com/>
 
 Multiple backends implementation and other patches by Toby Inkster
 <tobyink@cpan.org> (see also a full fork at L<Spreadsheet::Wright>).

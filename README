@@ -170,9 +170,13 @@ METHODS
 
     Once a spreadsheet is closed, calls to addrow() will fail.
 
+LICENSE
+    This module is free software; you can redistribute it and/or modify it
+    under the same terms as Perl itself.
+
 AUTHORS
     Written by Nick Eremeev <nick.eremeev@gmail.com>; Andrew Maltsev
-    <am@ejelta.com>; http://ejelta.com/
+    <am@ejelta.com>; <https://ejelta.com/>
 
     Multiple backends implementation and other patches by Toby Inkster
     <tobyink@cpan.org> (see also a full fork at Spreadsheet::Wright).
