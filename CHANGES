@@ -2,6 +2,9 @@ See https://github.com/amaltsev/Spreadsheet-Write for the most recent changes.
 
 ---------------------------------------------------------------------
 
+1.01 - 07-Jul-2018
+    * Added a license, bumped to 1.x
+
 0.08 - 05-Jul-2018
     * Updated to Test::Unit::Lite
     * Cleaned up, removed unneeded dependencies
