@@ -1,48 +1,63 @@
 =head1 NAME
 
-Spreadsheet::Write - Simplified writer for spreadsheet files (CSV, XLS, XLSX, ...)
+Spreadsheet::Write - Writer for spreadsheet files (CSV, XLS, XLSX, ...)
 
 =head1 SYNOPSIS
 
-    # EXCEL spreadsheet
+Basic usage:
 
     use Spreadsheet::Write;
 
-    my $h=Spreadsheet::Write->new(
-        file    => 'spreadsheet.xlsx',
-        sheet   => 'Products',
+    my $sp=Spreadsheet::Write->new(file => 'test.xlsx');
+
+    $sp->addrow('hello','world');
+
+    $sp->close();
+
+More possibilities:
+
+    use Spreadsheet::Write;
+
+    my $sp=Spreadsheet::Write->new(
+        file    => $ARGV[0],        # eg. test.xls, test.xlsx, or test.csv
+        sheet   => 'Test Data',
         styles  => {
-            money   => '($#,##0_);($#,##0)',
+            money   => {
+                format      => '$#,##0.00;-$#,##0.00',
+            },
+            bright  => {
+                font_weight => 'bold',
+                font_color  => 'blue',
+                font_style  => 'italic',
+            },
         },
     );
 
-    $h->addrow('foo',{
-        content         => 'bar',
-        type            => 'number',
-        style           => 'money',
-        font_weight     => 'bold',
-        font_color      => 42,
-        bg_color        => 'gray',
-        font_face       => 'Times New Roman',
-        font_size       => 20,
-        align           => 'center',
-        valign          => 'vcenter',
-        font_decoration => 'strikeout',
-        font_style      => 'italic',
-    });
-    $h->addrow('foo2','bar2');
-    $h->freeze(1,0);
-
-    # CSV file
-
-    use Spreadsheet::Write;
-
-    my $h=Spreadsheet::Write->new(
-        file        => 'file.csv',
-        encoding    => 'iso8859',
+    $sp->addrow(
+        'col1',
+        { content => [ 'col2', 'col3', 'col4' ], style => 'bright' },
+        { content => 'col5', bg_color => 'gray' },
+        'col6',
     );
-    die $h->error() if $h->error;
-    $h->addrow('foo','bar');
+
+    $sp->freeze(1,0);
+
+    $sp->addrow(
+        { content => [ 1, 1.23, 123.45, -234.56 ], style => 'money' },
+    );
+
+    my @data=(
+        [ qw(1 2 3 4) ],
+        [ qw(a s d f) ],
+        [ qw(z x c v b) ],
+        # ...
+    );
+
+    foreach my $row (@data) {
+        $sp->addrow({ style => 'ntext', content => $row });
+    }
+
+    $sp->close();
 
 =head1 DESCRIPTION
 
@@ -67,7 +82,7 @@ require 5.008_009;
 use strict;
 use IO::File;
 
-our $VERSION='1.02';
+our $VERSION='1.03';
 
 sub version {
     return $VERSION;
