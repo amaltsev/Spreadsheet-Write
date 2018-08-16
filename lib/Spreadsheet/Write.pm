@@ -64,7 +64,7 @@ require 5.008_009;
 use strict;
 use IO::File;
 
-our $VERSION='1.01';
+our $VERSION='1.02';
 
 sub version {
     return $VERSION;
@@ -86,7 +86,7 @@ following are valid:
 
     file        filename of the new spreadsheet or an IO handle (mandatory)
     encoding    encoding of output file (optional, csv format only)
-    format      format of spreadsheet - 'csv', 'xls', or 'auto' (default)
+    format      format of spreadsheet - 'csv', 'xls', 'xlsx', or 'auto' (default)
     sheet       Sheet name (optional, not supported by some formats)
     styles      Defines cell formatting shortcuts (optional)
 
@@ -145,6 +145,7 @@ sub new(@) {
     my $implementation={
         csv     => 'WriteCSV',
         xls     => 'WriteXLS',
+        xlsx    => 'WriteXLSX',
     }->{lc $format};
 
     $implementation ||
@@ -240,7 +241,7 @@ override style definitions.
 Example:
 
     my $sp=Spreadsheet::Write->new(
-        file        => 'employees.xls',
+        file        => 'employees.xlsx',
         styles      => {
             header => { font_weight => 'bold' },
         },

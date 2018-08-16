@@ -64,7 +64,7 @@ METHODS
 
         file        filename of the new spreadsheet or an IO handle (mandatory)
         encoding    encoding of output file (optional, csv format only)
-        format      format of spreadsheet - 'csv', 'xls', or 'auto' (default)
+        format      format of spreadsheet - 'csv', 'xls', 'xlsx', or 'auto' (default)
         sheet       Sheet name (optional, not supported by some formats)
         styles      Defines cell formatting shortcuts (optional)
 
@@ -107,7 +107,7 @@ METHODS
     Example:
 
         my $sp=Spreadsheet::Write->new(
-            file        => 'employees.xls',
+            file        => 'employees.xlsx',
             styles      => {
                 header => { font_weight => 'bold' },
             },
