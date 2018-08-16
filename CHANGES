@@ -2,6 +2,9 @@ See https://github.com/amaltsev/Spreadsheet-Write for the most recent changes.
 
 ---------------------------------------------------------------------
 
+1.03 - 08-Aug-2018
+    * Added XLSX support (via Excel::Writer::XLSX)
+
 1.01 - 07-Jul-2018
     * Added a license, bumped to 1.x
 
