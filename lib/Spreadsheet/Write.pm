@@ -1,6 +1,6 @@
 =head1 NAME
 
-Spreadsheet::Write - Simplified writer for CSV or XLS (MS Excel'97) files
+Spreadsheet::Write - Simplified writer for spreadsheet files (CSV, XLS, XLSX, ...)
 
 =head1 SYNOPSIS
 
@@ -9,8 +9,7 @@ Spreadsheet::Write - Simplified writer for CSV or XLS (MS Excel'97) files
     use Spreadsheet::Write;
 
     my $h=Spreadsheet::Write->new(
-        file    => 'spreadsheet.xls',
-        format  => 'xls',
+        file    => 'spreadsheet.xlsx',
         sheet   => 'Products',
         styles  => {
             money   => '($#,##0_);($#,##0)',
@@ -48,9 +47,13 @@ Spreadsheet::Write - Simplified writer for CSV or XLS (MS Excel'97) files
 =head1 DESCRIPTION
 
 C<Spreadsheet::Write> writes files in CSV, XLS (Microsoft Excel 97),
-and potentially other formats. It is especially suitable for building
-various dumps and reports where rows are built in sequence, one after
-another.
+XLSX (Microsoft Excel 2007), and other formats if their drivers
+exist. It is especially suitable for building various dumps and reports
+where rows are built in sequence, one after another.
+
+The same calling format and options can be used with any output file
+format. Unsupported options are ignored where possible allowing for easy
+run-time selection of the output format by file name.
 
 =head1 METHODS
 
