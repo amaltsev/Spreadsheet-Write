@@ -1,11 +1,16 @@
-use ExtUtils::MakeMaker;
+use ExtUtils::MakeMaker 6.64;
+
 WriteMakefile(
     'NAME'          => 'Spreadsheet::Write',
+    'LICENSE'       => 'perl_5',
     'VERSION_FROM'  => 'lib/Spreadsheet/Write.pm',
     'PREREQ_PM'     => {
         'Excel::Writer::XLSX'       => '0.98',
         'Spreadsheet::WriteExcel'   => '2.15',
         'Text::CSV'                 => '1.18',
+    },
+    'CONFIGURE_REQUIRES' => {
+        'ExtUtils::MakeMaker'       => '6.64',
     },
     'TEST_REQUIRES' => {
         'Test::Unit::Lite'          => '0.1202',
